@@ -28,8 +28,8 @@ func main() {
 
 	faw := http.NewFAW(db)
 	faw.LoadConfig(cfg)
-	// faw.BackgroundRunning()
-	faw.Running()
+	faw.BackgroundRunning()
+	// faw.Running()
 
 	// Service
 	use := domain.NewUsecase(db)

@@ -8,8 +8,7 @@ on:
 
 jobs:
   build_and_package_job:
-    runs-on: ubuntu-latest
-
+    runs-on: macos-latest
     steps:
       # 步骤一：检出代码到运行环境中
       - name: Checkout code
@@ -19,23 +18,26 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.21'
+          go-version: '1.23.4'
 
       # 步骤三：下载项目依赖，确保构建能正常进行
       - name: Download Go dependencies
         run: go mod download
-
-    #   - name: Build faw_vw_auto application
-    #     run: sh build_amd64_linux.sh
-      
-    #   - name: Package application
-    #     run: tar -czvf faw_vw_auto.tar.gz faw_vw_auto FAWVW.db env.yaml
-
+    
       - name: Build faw_vw_auto_darwin application
-        run: sh build_arm64_darwin.sh
+        env:
+          GOOS: darwin
+          GOARCH: arm64
+          CGO_ENABLED: 1
+        run: |
+          echo $GOOS
+          echo $GOARCH
+          echo $CGO_ENABLED
+          go build -o faw_vw_auto_darwin
 
       - name: Package application
-        run: tar -czvf faw_vw_auto_darwin.tar.gz faw_vw_auto_darwin FAWVW.db env.yaml
+        run: |
+          tar -czvf faw_vw_auto_darwin.tar.gz faw_vw_auto_darwin FAWVW.db env.yaml
 
       # 步骤六：上传构建产物（Artifact），方便后续下载查看
       - name: Upload artifact
