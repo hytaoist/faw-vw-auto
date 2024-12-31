@@ -3,8 +3,8 @@ name: Build and Package Go Project
 # 定义触发工作流的事件，这里是在main分支有推送操作时触发
 on:
   push:
-    branches:
-      - main
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+
 
 jobs:
   build_and_package_job:
