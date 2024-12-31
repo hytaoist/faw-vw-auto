@@ -1,0 +1,70 @@
+name: Build and Package Go Project
+
+# 定义触发工作流的事件，这里是在main分支有推送操作时触发
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_package_job:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 步骤一：检出代码到运行环境中
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 步骤二：设置Go环境，指定Go版本，这里以1.21为例，可按需修改
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      # 步骤三：下载项目依赖，确保构建能正常进行
+      - name: Download Go dependencies
+        run: go mod download
+
+    #   - name: Build faw_vw_auto application
+    #     run: sh build_amd64_linux.sh
+      
+    #   - name: Package application
+    #     run: tar -czvf faw_vw_auto.tar.gz faw_vw_auto FAWVW.db env.yaml
+
+      - name: Build faw_vw_auto_darwin application
+        run: sh build_arm64_darwin.sh
+
+      - name: Package application
+        run: tar -czvf faw_vw_auto_darwin.tar.gz faw_vw_auto_darwin FAWVW.db env.yaml
+
+      # 步骤六：上传构建产物（Artifact），方便后续下载查看
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: faw_vw_auto_darwin
+          path: faw_vw_auto_darwin.tar.gz
+    
+    # 步骤六：创建GitHub Release
+    # 此处需要设置一个环境变量GITHUB_TOKEN，用于授权操作，GitHub会自动提供这个token，我们通过secrets来获取使用
+    # 同时提取当前提交的版本号，作为Release的版本号，假设你的项目遵循语义化版本规范，版本号在项目的tag中体现
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+            tag_name: ${{ github.ref }}
+            release_name: Release ${{ github.ref }}
+            draft: false
+            prerelease: false
+
+    # 步骤七：将打包文件上传到刚创建的GitHub Release中
+      - name: Upload package to Release
+        uses: actions/upload-release-asset@v1
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+            upload_url: ${{ steps.create_release.outputs.upload_url }}
+            asset_path: faw_vw_auto_darwin.tar.gz
+            asset_name: faw_vw_auto_darwin.tar.gz
+            asset_content_type: application/x-tar+gz
