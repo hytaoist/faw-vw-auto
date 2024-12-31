@@ -1,5 +1,3 @@
-port: 5432
-schema: "test"
 # Bark推送的URL
 BarkPushServerURL: ""
 # 登录手机号

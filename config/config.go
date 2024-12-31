@@ -9,10 +9,6 @@ import (
 )
 
 type Config struct {
-	// 定义您的配置字段
-	Port   int    `yaml:"port"`
-	Schema string `yaml:"schema"`
-
 	// Bark推送的URL
 	BarkPushServerURL string `yaml:"BarkPushServerURL"`
 

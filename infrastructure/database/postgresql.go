@@ -15,7 +15,7 @@ type Psql struct {
 	db *sql.DB
 }
 
-func NewPsql(schema string) *Psql {
+func NewPsql() *Psql {
 	db, err := sql.Open("sqlite3", "FAWVW.db")
 	if err != nil {
 		log.Critical(err)

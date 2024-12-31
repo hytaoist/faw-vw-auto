@@ -24,7 +24,7 @@ func main() {
 	http.SetPushServerURL(cfg.BarkPushServerURL)
 
 	log.Setup()
-	db := database.NewPsql(cfg.Schema)
+	db := database.NewPsql()
 
 	faw := http.NewFAW(db)
 	faw.LoadConfig(cfg)
