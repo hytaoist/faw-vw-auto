@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	. "github.com/hytaoist/autosignin/config"
-	. "github.com/hytaoist/autosignin/domain"
-	. "github.com/hytaoist/autosignin/infrastructure/database"
+	. "github.com/hytaoist/faw-vw-auto/config"
+	. "github.com/hytaoist/faw-vw-auto/domain"
+	. "github.com/hytaoist/faw-vw-auto/infrastructure/database"
 	"github.com/robfig/cron/v3"
 )
 

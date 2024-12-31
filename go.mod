@@ -1,4 +1,4 @@
-module github.com/hytaoist/autosignin
+module github.com/hytaoist/faw-vw-auto
 
 go 1.19
 

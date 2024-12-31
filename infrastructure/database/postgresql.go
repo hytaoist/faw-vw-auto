@@ -7,7 +7,7 @@ import (
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/hytaoist/autosignin/internal/log"
+	"github.com/hytaoist/faw-vw-auto/internal/log"
 	"github.com/pkg/errors"
 )
 

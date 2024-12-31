@@ -8,8 +8,8 @@ import (
 	"os"
 	"os/signal"
 
-	. "github.com/hytaoist/autosignin/domain"
-	"github.com/hytaoist/autosignin/internal/log"
+	. "github.com/hytaoist/faw-vw-auto/domain"
+	"github.com/hytaoist/faw-vw-auto/internal/log"
 )
 
 const (

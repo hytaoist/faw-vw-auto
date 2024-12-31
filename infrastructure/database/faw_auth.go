@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/hytaoist/autosignin/domain"
-	"github.com/hytaoist/autosignin/internal/log"
+	"github.com/hytaoist/faw-vw-auto/domain"
+	"github.com/hytaoist/faw-vw-auto/internal/log"
 	"github.com/pkg/errors"
 )
 

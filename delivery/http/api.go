@@ -7,8 +7,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 
-	. "github.com/hytaoist/autosignin/domain"
-	"github.com/hytaoist/autosignin/internal/log"
+	. "github.com/hytaoist/faw-vw-auto/domain"
+	"github.com/hytaoist/faw-vw-auto/internal/log"
 )
 
 type api struct {

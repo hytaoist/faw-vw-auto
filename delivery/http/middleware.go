@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/hytaoist/autosignin/internal/log"
+	"github.com/hytaoist/faw-vw-auto/internal/log"
 )
 
 func recovery(h http.Handler) http.Handler {

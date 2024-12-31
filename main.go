@@ -4,11 +4,11 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/hytaoist/autosignin/config"
-	"github.com/hytaoist/autosignin/delivery/http"
-	"github.com/hytaoist/autosignin/domain"
-	"github.com/hytaoist/autosignin/infrastructure/database"
-	"github.com/hytaoist/autosignin/internal/log"
+	"github.com/hytaoist/faw-vw-auto/config"
+	"github.com/hytaoist/faw-vw-auto/delivery/http"
+	"github.com/hytaoist/faw-vw-auto/domain"
+	"github.com/hytaoist/faw-vw-auto/infrastructure/database"
+	"github.com/hytaoist/faw-vw-auto/internal/log"
 )
 
 //go:embed assets

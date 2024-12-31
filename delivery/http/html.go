@@ -9,7 +9,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 
-	"github.com/hytaoist/autosignin/internal/log"
+	"github.com/hytaoist/faw-vw-auto/internal/log"
 )
 
 type html struct {
