@@ -24,3 +24,4 @@ go.work.sum
 # env file
 .env
 __debug_*
+faw_vw_auto_darwin
