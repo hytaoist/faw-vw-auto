@@ -1,9 +1,7 @@
 package http
 
 import (
-	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,8 +10,9 @@ import (
 	"time"
 
 	. "github.com/hytaoist/faw-vw-auto/config"
-	. "github.com/hytaoist/faw-vw-auto/domain"
+	// . "github.com/hytaoist/faw-vw-auto/domain"
 	. "github.com/hytaoist/faw-vw-auto/infrastructure/database"
+	"github.com/pkg/errors"
 	"github.com/robfig/cron/v3"
 )
 
@@ -30,8 +29,8 @@ var (
 	}
 
 	// 登录的请求body
-	signinRequestBody SigninRequestBody
-	securityCodeBody  SecurityCodeBody
+	// signinRequestBody SigninRequestBody
+	// securityCodeBody  SecurityCodeBody
 )
 
 // 通用Resp
@@ -90,14 +89,13 @@ func NewFAW(p *Psql) *FAW_VW {
 
 func (fawvw *FAW_VW) LoadConfig(cfg *Config) {
 	// signinRequestBody
-	signinRequestBody.GraphCode = ""
-	signinRequestBody.Mobile = cfg.Mobile
-	signinRequestBody.Password = cfg.Password
-	signinRequestBody.SecurityCode = cfg.SecurityCode
+	// signinRequestBody.GraphCode = ""
+	// signinRequestBody.Mobile = cfg.Mobile
+	// signinRequestBody.Password = cfg.Password
+	// signinRequestBody.SecurityCode = cfg.SecurityCode
 	// securityCode
-	securityCodeBody.SecurityCode = cfg.SecurityCode
-
-	defaultHeaders.Set("did", cfg.Did)
+	// securityCodeBody.SecurityCode = cfg.SecurityCode
+	// defaultHeaders.Set("did", cfg.Did)
 }
 
 func (fawvw *FAW_VW) BackgroundRunning() {
@@ -184,19 +182,27 @@ func (fawvw *FAW_VW) Running() {
 func (fawvw *FAW_VW) getValidToken(authorization string) string {
 	if authorization != "" {
 		// 1.检验当前这个token是否有效（通过查询签到信息接口）
-		oneappResp, err := fawvw.getCheckInInfo(authorization)
+		// oneappResp, err := fawvw.getCheckInInfo(authorization)
+		// if err != nil {
+		// 	fmt.Println(time.Now(), "查询签到信息异常", err)
+		// }
+		// // ReturnStatus == "SUCCEED"，表示当前的这个请求能正常执行，且有返回结果，authorization有效！
+		// if oneappResp != nil && oneappResp.ReturnStatus == RETURN_STATUS_SUCCEED {
+		// 	return authorization
+		// }
+
+		r, err := fawvw.checkToken(authorization)
 		if err != nil {
-			fmt.Println(time.Now(), "查询签到信息异常", err)
+			fmt.Println(time.Now(), "校验Token接口异常", err)
 		}
-		// ReturnStatus == "SUCCEED"，表示当前的这个请求能正常执行，且有返回结果，authorization有效！
-		if oneappResp != nil && oneappResp.ReturnStatus == RETURN_STATUS_SUCCEED {
+		if r {
 			return authorization
 		}
 	}
 
 	// 1.1未授权/Token 过期，需重新获取Token
 	// 1.签到获取AccessToken，并入库
-	newAuthorization, err := fawvw.signinByPassword()
+	newAuthorization, err := fawvw.registeOrLogin()
 	if err != nil {
 		fmt.Println(time.Now(), "执行登陆获取授权异常", err)
 		Push(FAWVWGroupName, TitleError, err.Error())
@@ -206,69 +212,73 @@ func (fawvw *FAW_VW) getValidToken(authorization string) string {
 	return newAuthorization
 }
 
-func (favw *FAW_VW) signinByPassword() (string, error) {
-	//1.
-	// 定义目标 URL
-	targetURL := "https://oneapp-api.faw-vw.com/account/login/loginByPassword/v1"
+/*
+	func (favw *FAW_VW) signinByPassword() (string, error) {
+		//1.
+		// 定义目标 URL
+		targetURL := "https://oneapp-api.faw-vw.com/account/login/loginByPassword/v1"
 
-	// 创建参数
-	params := url.Values{}
+		// 创建参数
+		params := url.Values{}
 
-	// 定义请求体数据
-	bodyData, err := json.Marshal(signinRequestBody)
-	if err != nil {
-		fmt.Println(time.Now(), "登录请求body解析异常请排查", err)
-	}
-
-	// 创建请求
-	req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(bodyData))
-	if err != nil {
-		fmt.Println(time.Now(), "创建请求异常", err)
-		return "", err
-	}
-
-	// 设置请求头
-	// 添加默认 headers 到请求中
-	for key, values := range defaultHeaders {
-		for _, value := range values {
-			req.Header.Set(key, value)
+		// 定义请求体数据
+		bodyData, err := json.Marshal(signinRequestBody)
+		if err != nil {
+			fmt.Println(time.Now(), "登录请求body解析异常请排查", err)
 		}
+
+		// 创建请求
+		req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(bodyData))
+		if err != nil {
+			fmt.Println(time.Now(), "创建请求异常", err)
+			return "", err
+		}
+
+		// 设置请求头
+		// 添加默认 headers 到请求中
+		for key, values := range defaultHeaders {
+			for _, value := range values {
+				req.Header.Set(key, value)
+			}
+		}
+
+		// 添加参数到 URL
+		req.URL.RawQuery = params.Encode()
+
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			fmt.Println(time.Now(), "请求异常", err)
+			return "", err
+		}
+		if resp.StatusCode != http.StatusOK {
+			fmt.Println(time.Now(), "请求失败", resp.Status)
+			return "", err
+		}
+		defer resp.Body.Close()
+		// 2.解析结果
+		body, err := io.ReadAll(resp.Body)
+		var auth FAWAuth
+		oneappResp := &OneAppResp{Data: &auth}
+		errJson := json.Unmarshal(body, &oneappResp)
+		if errJson != nil {
+			return "", err
+		}
+
+		// 3.将授权入库
+		err = favw.psql.CreateFAW_Auth(&auth)
+		if err != nil {
+			return "", err
+		}
+		var authorization string = ""
+		authorization = auth.TokenType + auth.AccessToken
+		return authorization, nil
 	}
 
-	// 添加参数到 URL
-	req.URL.RawQuery = params.Encode()
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println(time.Now(), "请求异常", err)
-		return "", err
-	}
-	if resp.StatusCode != http.StatusOK {
-		fmt.Println(time.Now(), "请求失败", resp.Status)
-		return "", err
-	}
-	defer resp.Body.Close()
-	// 2.解析结果
-	body, err := io.ReadAll(resp.Body)
-	var auth FAWAuth
-	oneappResp := &OneAppResp{Data: &auth}
-	errJson := json.Unmarshal(body, &oneappResp)
-	if errJson != nil {
-		return "", err
-	}
-
-	// 3.将授权入库
-	err = favw.psql.CreateFAW_Auth(resp.Request.Context(), &auth)
-	if err != nil {
-		return "", err
-	}
-	var authorization string = ""
-	authorization = auth.TokenType + auth.AccessToken
-	return authorization, nil
-}
+*/
 
 // 查询签到信息
+
 func (favw *FAW_VW) getCheckInInfo(authorization string) (*OneAppResp, error) {
 	//1.
 	// 定义目标 URL
@@ -334,19 +344,20 @@ func (favw *FAW_VW) getCheckInInfo(authorization string) (*OneAppResp, error) {
 }
 
 // 签到
+
 func (fawvw *FAW_VW) checkinV1(authorization string) (*OneAppResp, error) {
 	//1.
 	// 定义目标 URL
 	targetURL := "https://oneapp-api.faw-vw.com/profile/checkin/v1"
 
 	// 定义请求体数据
-	bodyData, err := json.Marshal(securityCodeBody)
-	if err != nil {
-		fmt.Println(time.Now(), "登录请求签到解析异常请排查", err)
-	}
+	// bodyData, err := json.Marshal(securityCodeBody)
+	// if err != nil {
+	// 	fmt.Println(time.Now(), "登录请求签到解析异常请排查", err)
+	// }
 
 	// 创建请求
-	req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(bodyData))
+	req, err := http.NewRequest("POST", targetURL, nil)
 	if err != nil {
 		fmt.Println(time.Now(), "创建请求异常", err)
 		return nil, err

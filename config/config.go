@@ -16,9 +16,8 @@ type Config struct {
 	Mobile string `yaml:"mobile"`
 	// 登录
 	Password string `yaml:"password"`
-	// 登录，签到请求中使用
-	SecurityCode string `yaml:"securityCode"`
-	Did          string
+	// Web端Did
+	WebDid string `yaml:"WebDid"`
 }
 
 func LoadConfig() (*Config, error) {

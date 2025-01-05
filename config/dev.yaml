@@ -4,7 +4,5 @@ BarkPushServerURL: ""
 mobile: ""
 # 登录密码
 password: ""
-# 登录，签到请求中使用参数"securityCode"
-securityCode: ""
-# 登录必需参数“did”
-did: ""
+# Web端登录必须参数“did”
+WebDid:

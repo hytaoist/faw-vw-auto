@@ -27,7 +27,8 @@ func main() {
 	db := database.NewPsql()
 
 	faw := http.NewFAW(db)
-	faw.LoadConfig(cfg)
+	faw.LoadWebAPIConfig(cfg)
+	// faw.LoadConfig(cfg)
 	faw.BackgroundRunning()
 	// faw.Running()
 

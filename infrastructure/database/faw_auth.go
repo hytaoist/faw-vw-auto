@@ -1,7 +1,6 @@
 package database
 
 import (
-	"context"
 	"database/sql"
 	"time"
 
@@ -10,15 +9,15 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (p *Psql) CreateFAW_Auth(ctx context.Context, auth *domain.FAWAuth) error {
-	_, err := p.InsertAuth(ctx, auth.AccessToken, auth.TokenType, auth.ExpiresIn)
+func (p *Psql) CreateFAW_Auth(auth *domain.FAWAuth) error {
+	_, err := p.InsertAuth(auth.AccessToken, auth.TokenType, auth.ExpiresIn)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (p *Psql) InsertAuth(ctx context.Context, accessToken string, tokenType string, expiresIn string) (string, error) {
+func (p *Psql) InsertAuth(accessToken string, tokenType string, expiresIn string) (string, error) {
 	localtime := time.Now().Local().Format(time.DateTime)
 	query := `
 		INSERT INTO faw_auth (access_token, token_type, expires_in, create_at)
