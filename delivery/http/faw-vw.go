@@ -1,6 +1,7 @@
 package http
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -30,7 +31,7 @@ var (
 
 	// 登录的请求body
 	// signinRequestBody SigninRequestBody
-	// securityCodeBody  SecurityCodeBody
+	securityCodeBody SecurityCodeBody
 )
 
 // 通用Resp
@@ -87,15 +88,16 @@ func NewFAW(p *Psql) *FAW_VW {
 	return b
 }
 
-func (fawvw *FAW_VW) LoadConfig(cfg *Config) {
+func (fawvw *FAW_VW) LoadAppConfig(cfg *Config) {
 	// signinRequestBody
 	// signinRequestBody.GraphCode = ""
 	// signinRequestBody.Mobile = cfg.Mobile
 	// signinRequestBody.Password = cfg.Password
 	// signinRequestBody.SecurityCode = cfg.SecurityCode
 	// securityCode
-	// securityCodeBody.SecurityCode = cfg.SecurityCode
-	// defaultHeaders.Set("did", cfg.Did)
+
+	securityCodeBody.SecurityCode = cfg.SecurityCode
+	defaultHeaders.Set("did", cfg.Did)
 }
 
 func (fawvw *FAW_VW) BackgroundRunning() {
@@ -351,13 +353,13 @@ func (fawvw *FAW_VW) checkinV1(authorization string) (*OneAppResp, error) {
 	targetURL := "https://oneapp-api.faw-vw.com/profile/checkin/v1"
 
 	// 定义请求体数据
-	// bodyData, err := json.Marshal(securityCodeBody)
-	// if err != nil {
-	// 	fmt.Println(time.Now(), "登录请求签到解析异常请排查", err)
-	// }
+	bodyData, err := json.Marshal(securityCodeBody)
+	if err != nil {
+		fmt.Println(time.Now(), "登录请求签到解析异常请排查", err)
+	}
 
 	// 创建请求
-	req, err := http.NewRequest("POST", targetURL, nil)
+	req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(bodyData))
 	if err != nil {
 		fmt.Println(time.Now(), "创建请求异常", err)
 		return nil, err

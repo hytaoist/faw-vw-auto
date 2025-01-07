@@ -18,6 +18,9 @@ type Config struct {
 	Password string `yaml:"password"`
 	// Web端Did
 	WebDid string `yaml:"WebDid"`
+
+	SecurityCode string `yaml:"securityCode"`
+	Did          string `yaml:"did"`
 }
 
 func LoadConfig() (*Config, error) {

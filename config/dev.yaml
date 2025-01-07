@@ -6,3 +6,8 @@ mobile: ""
 password: ""
 # Web端登录必须参数“did”
 WebDid:
+
+# securityCode（客户端签到接口必须参数）
+securityCode: ""
+# 设备ID（客户端签到接口必须参数）
+did: ""

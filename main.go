@@ -28,7 +28,7 @@ func main() {
 
 	faw := http.NewFAW(db)
 	faw.LoadWebAPIConfig(cfg)
-	// faw.LoadConfig(cfg)
+	faw.LoadAppConfig(cfg)
 	faw.BackgroundRunning()
 	// faw.Running()
 
