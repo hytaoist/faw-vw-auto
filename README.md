@@ -13,6 +13,10 @@
 - password: 密码密文（需要先用浏览器登录一下Web版的应用，然后看下https://vw.faw-vw.com/api/business/cpoint/registeOrLogin，在Request Body里就有这个参数）
 - WebDid：设备ID（同上，在Request Body里的did参数）
 - BarkPushServerURL：Bark推送地址（可选），这个参数是使用Bark来推送签到结果至iPhone，如果不需要推送可以不填写。
+
+- securityCode：客户端签到接口必须参数。这个参数可以通过抓包App的登录接口（https://oneapp-api.faw-vw.com/account/login/loginByPassword/v1）获取。
+- did：设备ID。这个参数是客户端应用的设备ID，可以通过抓包App的登录接口（https://oneapp-api.faw-vw.com/account/login/loginByPassword/v1）获取。
+
 3. 运行`faw-vw-auto`， 执行命令如‘nohup ./faw-vw-auto-darwin &’，即可自动签到。
 
 ## 注意事项
