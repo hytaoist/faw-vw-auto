@@ -29,8 +29,6 @@ var (
 		"x-namespace-code":    []string{"production"},
 	}
 
-	// 登录的请求body
-	// signinRequestBody SigninRequestBody
 	securityCodeBody SecurityCodeBody
 )
 
@@ -89,13 +87,7 @@ func NewFAW(p *Psql) *FAW_VW {
 }
 
 func (fawvw *FAW_VW) LoadAppConfig(cfg *Config) {
-	// signinRequestBody
-	// signinRequestBody.GraphCode = ""
-	// signinRequestBody.Mobile = cfg.Mobile
-	// signinRequestBody.Password = cfg.Password
-	// signinRequestBody.SecurityCode = cfg.SecurityCode
 	// securityCode
-
 	securityCodeBody.SecurityCode = cfg.SecurityCode
 	defaultHeaders.Set("did", cfg.Did)
 }
@@ -213,71 +205,6 @@ func (fawvw *FAW_VW) getValidToken(authorization string) string {
 
 	return newAuthorization
 }
-
-/*
-	func (favw *FAW_VW) signinByPassword() (string, error) {
-		//1.
-		// 定义目标 URL
-		targetURL := "https://oneapp-api.faw-vw.com/account/login/loginByPassword/v1"
-
-		// 创建参数
-		params := url.Values{}
-
-		// 定义请求体数据
-		bodyData, err := json.Marshal(signinRequestBody)
-		if err != nil {
-			fmt.Println(time.Now(), "登录请求body解析异常请排查", err)
-		}
-
-		// 创建请求
-		req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(bodyData))
-		if err != nil {
-			fmt.Println(time.Now(), "创建请求异常", err)
-			return "", err
-		}
-
-		// 设置请求头
-		// 添加默认 headers 到请求中
-		for key, values := range defaultHeaders {
-			for _, value := range values {
-				req.Header.Set(key, value)
-			}
-		}
-
-		// 添加参数到 URL
-		req.URL.RawQuery = params.Encode()
-
-		client := &http.Client{}
-		resp, err := client.Do(req)
-		if err != nil {
-			fmt.Println(time.Now(), "请求异常", err)
-			return "", err
-		}
-		if resp.StatusCode != http.StatusOK {
-			fmt.Println(time.Now(), "请求失败", resp.Status)
-			return "", err
-		}
-		defer resp.Body.Close()
-		// 2.解析结果
-		body, err := io.ReadAll(resp.Body)
-		var auth FAWAuth
-		oneappResp := &OneAppResp{Data: &auth}
-		errJson := json.Unmarshal(body, &oneappResp)
-		if errJson != nil {
-			return "", err
-		}
-
-		// 3.将授权入库
-		err = favw.psql.CreateFAW_Auth(&auth)
-		if err != nil {
-			return "", err
-		}
-		var authorization string = ""
-		authorization = auth.TokenType + auth.AccessToken
-		return authorization, nil
-	}
-
-*/
 
 // 查询签到信息
 
