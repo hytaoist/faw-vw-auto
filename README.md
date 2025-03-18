@@ -1,8 +1,9 @@
 # faw-vw-auto
 一汽大众定时签到获取积分，Release版本只编译了macOS（M系列芯片）环境的程序包，其他平台可自行下载编译。
-
-<img src="IMG_1.PNG" width="300" alt="预览1">
-<img src="IMG_2.PNG" width="300" alt="预览2">
+<div>
+    <img src="IMG_1.PNG" width="40%" alt="预览1">
+    <img src="IMG_2.PNG" width="40%" alt="预览2">
+</div>
 
 ## 有哪些功能
 - 每日签到
