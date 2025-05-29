@@ -22,12 +22,12 @@
 - securityCode：客户端签到接口必须参数。这个参数可以通过抓包App的登录接口（https://oneapp-api.faw-vw.com/account/login/loginByPassword/v1）获取。
 - did：设备ID。这个参数是客户端应用的设备ID，可以通过抓包App的登录接口（https://oneapp-api.faw-vw.com/account/login/loginByPassword/v1）获取。
 
-### 环境要求
-- macOS（M系列芯片）环境，Release版本已编译。
+
+#### macOS（M系列芯片）环境，Release版本已编译。
 1. 从Release里下载最新版本的`faw-vw-auto`。并解压至任意目录，并填写配置文件env.yaml里的配置项。
 2. 运行`faw-vw-auto`， 执行命令如‘nohup ./faw-vw-auto-darwin &’，即可自动签到。
 
-- Docker环境
+#### Docker环境
 1. 确保Docker已安装并运行。
 2. 下载Docker镜像：`docker pull hytaoist/faw-vw-auto:latest`
 3. 运行Docker容器：`docker run -d --name faw-vw-auto -v /path/to/your/env.yaml:/app/env.yaml hytaoist/faw-vw-auto:latest`
