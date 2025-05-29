@@ -30,6 +30,7 @@ var (
 	}
 
 	securityCodeBody SecurityCodeBody
+	execFreq         string
 )
 
 // 通用Resp
@@ -90,12 +91,13 @@ func (fawvw *FAW_VW) LoadAppConfig(cfg *Config) {
 	// securityCode
 	securityCodeBody.SecurityCode = cfg.SecurityCode
 	defaultHeaders.Set("did", cfg.Did)
+	execFreq = cfg.ExecFreq
 }
 
 func (fawvw *FAW_VW) BackgroundRunning() {
 	loc, _ := time.LoadLocation("Asia/Shanghai")
 	c := cron.New(cron.WithLocation(loc))
-	c.AddFunc("10 10 * * *", func() {
+	c.AddFunc(execFreq, func() {
 		fmt.Println(time.Now(), "一汽大众每日签到")
 		fawvw.Running()
 	})

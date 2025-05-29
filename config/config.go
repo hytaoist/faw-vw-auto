@@ -21,6 +21,7 @@ type Config struct {
 
 	SecurityCode string `yaml:"securityCode"`
 	Did          string `yaml:"did"`
+	ExecFreq     string `yaml:"ExecFreq"`
 }
 
 func LoadConfig() (*Config, error) {
