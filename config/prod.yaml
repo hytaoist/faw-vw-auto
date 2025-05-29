@@ -11,3 +11,6 @@ WebDid:
 securityCode: ""
 # 设备ID（客户端签到接口必须参数）
 did: ""
+
+# 执行频率(默认：每日10:10执行)。CRON表达式形式。
+ExecFreq: "10 10 * * *"

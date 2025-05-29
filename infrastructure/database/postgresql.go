@@ -5,7 +5,7 @@ import (
 	"os"
 
 	_ "github.com/lib/pq"
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite" // 替换"github.com/mattn/go-sqlite3"
 
 	"github.com/hytaoist/faw-vw-auto/internal/log"
 	"github.com/pkg/errors"
@@ -16,7 +16,7 @@ type Psql struct {
 }
 
 func NewPsql() *Psql {
-	db, err := sql.Open("sqlite3", "FAWVW.db")
+	db, err := sql.Open("sqlite", "file:FAWVW.db")
 	if err != nil {
 		log.Critical(err)
 		os.Exit(1)
