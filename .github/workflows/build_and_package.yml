@@ -28,7 +28,7 @@ jobs:
         env:
           GOOS: darwin
           GOARCH: arm64
-          CGO_ENABLED: 1
+          CGO_ENABLED: 0
         run: |
           echo $GOOS
           echo $GOARCH
