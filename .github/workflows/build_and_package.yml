@@ -43,10 +43,14 @@ jobs:
 
       # 步骤六：上传构建产物（Artifact），方便后续下载查看
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: faw_vw_auto_darwin
           path: faw_vw_auto_darwin.tar.gz
+
+      # Debugging step to verify artifact creation
+      - name: Verify artifact
+        run: ls -lh faw_vw_auto_darwin.tar.gz
     
     # 步骤六：创建GitHub Release
     # 此处需要设置一个环境变量GITHUB_TOKEN，用于授权操作，GitHub会自动提供这个token，我们通过secrets来获取使用
