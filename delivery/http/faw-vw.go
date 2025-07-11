@@ -1,19 +1,13 @@
 package http
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
-	"net/url"
-	"strings"
 	"time"
 
 	. "github.com/hytaoist/faw-vw-auto/config"
 	// . "github.com/hytaoist/faw-vw-auto/domain"
 	. "github.com/hytaoist/faw-vw-auto/infrastructure/database"
-	"github.com/pkg/errors"
 	"github.com/robfig/cron/v3"
 )
 
@@ -50,6 +44,23 @@ type CheckInDataResp struct {
 	FirstCheckIn         bool               `json:"firstCheckIn"`
 	CheckInOnOtherDevice bool               `json:"checkInOnOtherDevice"`
 	CheckInDataList      []*CheckInDataItem `json:"checkInDataList"`
+}
+
+// 会员积分响应报文
+type ManufacturerScoreResp struct {
+	Businesstypename string
+	Invalidscore     string
+	Businessid       int
+	// 剩余积分
+	Remainscore string
+	Frozenscore string
+	// 可用积分
+	Availablescore    string
+	Dealerservicecode string
+	DealerServiceName string
+	Businessname      string
+	Usedscore         string
+	Scoretypename     string
 }
 
 // 查询签到信息响应报文
@@ -149,9 +160,6 @@ func (fawvw *FAW_VW) Running() {
 		return
 	}
 
-	seccessMSG := fmt.Sprintf("签到成功！连续签到天数：%d, 是否开盲盒：%t", checkinV1.ContinueCheckInDays, checkinV1.Lottery)
-	Push(FAWVWGroupName, TitleSignin, seccessMSG)
-
 	// 3.根据签到信息，能开盲盒时自动打开盲盒。
 	if checkinV1.Lottery {
 		lotteryV1Resp, err := fawvw.lotteryV1(authorization)
@@ -162,14 +170,37 @@ func (fawvw *FAW_VW) Running() {
 			return
 		}
 
-		if lotteryV1Resp.ReturnStatus == RETURN_STATUS_SUCCEED {
-			Push(FAWVWGroupName, TitleSignin, "打开盲盒成功！")
-		} else {
+		if lotteryV1Resp.ReturnStatus != RETURN_STATUS_SUCCEED {
 			errMSG := fmt.Sprintf("打开盲盒失败！%s", lotteryV1Resp.ErrorMessage)
 			fmt.Println(time.Now(), errMSG)
 			Push(FAWVWGroupName, TitleError, errMSG)
+			return
 		}
 	}
+
+	// 4.查询当日新增积分数以及总积分数，构建整体响应并推送Bark通知。
+	dailyIncrease, err := fawvw.getDayIncrease(authorization)
+	if err != nil {
+		errMSG := err.Error()
+		fmt.Println(time.Now(), errMSG)
+		Push(FAWVWGroupName, TitleError, errMSG)
+	}
+
+	manufacturerScore, err := fawvw.getManufacturerScore(authorization)
+	if err != nil {
+		errMSG := err.Error()
+		fmt.Println(time.Now(), errMSG)
+		Push(FAWVWGroupName, TitleError, errMSG)
+	}
+
+	var successMsg string
+	if checkinV1.Lottery {
+		successMsg = fmt.Sprintf("成功！连续签到：%d天，新增：%d，总可用：%s；已开盲盒", checkinV1.ContinueCheckInDays, *dailyIncrease, manufacturerScore.Availablescore)
+	} else {
+		successMsg = fmt.Sprintf("成功！连续签到：%d天，新增：%d，总可用：%s", checkinV1.ContinueCheckInDays, *dailyIncrease, manufacturerScore.Availablescore)
+	}
+
+	Push(FAWVWGroupName, TitleSignin, successMsg)
 }
 
 // 获取有效的Token
@@ -177,16 +208,7 @@ func (fawvw *FAW_VW) Running() {
 // 2.查询签到信息接口异常返回（未授权等），调用登录接口获取最新Token并入库
 func (fawvw *FAW_VW) getValidToken(authorization string) string {
 	if authorization != "" {
-		// 1.检验当前这个token是否有效（通过查询签到信息接口）
-		// oneappResp, err := fawvw.getCheckInInfo(authorization)
-		// if err != nil {
-		// 	fmt.Println(time.Now(), "查询签到信息异常", err)
-		// }
-		// // ReturnStatus == "SUCCEED"，表示当前的这个请求能正常执行，且有返回结果，authorization有效！
-		// if oneappResp != nil && oneappResp.ReturnStatus == RETURN_STATUS_SUCCEED {
-		// 	return authorization
-		// }
-
+		// 1.检验当前这个token是否有效
 		r, err := fawvw.checkToken(authorization)
 		if err != nil {
 			fmt.Println(time.Now(), "校验Token接口异常", err)
@@ -206,171 +228,4 @@ func (fawvw *FAW_VW) getValidToken(authorization string) string {
 	}
 
 	return newAuthorization
-}
-
-// 查询签到信息
-
-func (favw *FAW_VW) getCheckInInfo(authorization string) (*OneAppResp, error) {
-	//1.
-	// 定义目标 URL
-	targetURL := "https://oneapp-api.faw-vw.com/profile/checkin/data/v1"
-
-	// 创建参数
-	params := url.Values{}
-
-	// 创建请求
-	req, err := http.NewRequest("GET", targetURL, nil)
-
-	if err != nil {
-		fmt.Println(time.Now(), "创建请求异常", err)
-		return nil, err
-	}
-
-	// 设置请求头
-	// 添加默认 headers 到请求中
-	for key, values := range defaultHeaders {
-		for _, value := range values {
-			req.Header.Set(key, value)
-		}
-	}
-
-	// 设置授权
-	req.Header.Add("authorization", authorization)
-	// 添加参数到 URL
-	req.URL.RawQuery = params.Encode()
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println(time.Now(), "请求异常", err)
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	// 请求未授权
-	if resp.StatusCode == http.StatusUnauthorized {
-		fmt.Println(time.Now(), "请求未授权")
-		return nil, errors.New(string(resp.StatusCode))
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	var checkinInfo GetCheckInDataResp
-	// fmt.Println(time.Now(), "请求响应Body：", body)
-	// 1.json解析方式
-	// oneappResp := &OneAppResp{Data: &checkinInfo}
-	// errJson := json.Unmarshal(body, oneappResp)
-
-	// 2.使用decoder来解析
-	reader := strings.NewReader(string(body))
-	fmt.Println(time.Now(), "请求响应Body：", string(body))
-	oneappResp := &OneAppResp{Data: &checkinInfo}
-	decoder := json.NewDecoder(reader)
-	errJson := decoder.Decode(oneappResp)
-	if errJson != nil {
-		fmt.Println(time.Now(), "解析查询签到信息失败", errJson)
-		return nil, err
-	}
-
-	return oneappResp, nil
-}
-
-// 签到
-
-func (fawvw *FAW_VW) checkinV1(authorization string) (*OneAppResp, error) {
-	//1.
-	// 定义目标 URL
-	targetURL := "https://oneapp-api.faw-vw.com/profile/checkin/v1"
-
-	// 定义请求体数据
-	bodyData, err := json.Marshal(securityCodeBody)
-	if err != nil {
-		fmt.Println(time.Now(), "登录请求签到解析异常请排查", err)
-	}
-
-	// 创建请求
-	req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(bodyData))
-	if err != nil {
-		fmt.Println(time.Now(), "创建请求异常", err)
-		return nil, err
-	}
-
-	// 设置请求头
-	// 添加默认 headers 到请求中
-	for key, values := range defaultHeaders {
-		for _, value := range values {
-			req.Header.Set(key, value)
-		}
-	}
-	// 设置授权
-	req.Header.Set("authorization", authorization)
-	// 添加参数到 URL
-	// req.URL.RawQuery = params.Encode()
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println(time.Now(), "签到请求异常", err)
-		return nil, err
-	}
-	defer resp.Body.Close()
-	// 2.解析结果
-	body, err := io.ReadAll(resp.Body)
-
-	var checkinData CheckInDataResp
-	checkinV1 := &OneAppResp{Data: &checkinData}
-	errJson := json.Unmarshal(body, &checkinV1)
-	if errJson != nil {
-		fmt.Println(time.Now(), "签到成功，解析返回结果异常", err)
-		return nil, err
-	}
-	fmt.Println(time.Now(), "一汽大众签到成功！")
-	return checkinV1, nil
-}
-
-/*
-*
-打开盲盒
-*/
-func (fawvw *FAW_VW) lotteryV1(authorization string) (*OneAppResp, error) {
-	targetURL := "https://oneapp-api.faw-vw.com/profile/lottery/v1"
-
-	// 创建参数
-	params := url.Values{}
-	// 定义请求体数据
-	// 无Body
-	// 创建请求
-	req, err := http.NewRequest(http.MethodPost, targetURL, nil)
-	if err != nil {
-		fmt.Println(time.Now(), "创建请求异常", err)
-		return nil, err
-	}
-
-	// 设置请求头
-	// 添加默认 headers 到请求中
-	for key, values := range defaultHeaders {
-		for _, value := range values {
-			req.Header.Set(key, value)
-		}
-	}
-	// 设置授权
-	req.Header.Set("authorization", authorization)
-	// 添加参数到 URL
-	req.URL.RawQuery = params.Encode()
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println(time.Now(), "签到请求异常", err)
-		return nil, err
-	}
-	defer resp.Body.Close()
-	// 2.解析结果
-	body, err := io.ReadAll(resp.Body)
-	lotteryV1 := &OneAppResp{}
-	errJson := json.Unmarshal(body, &lotteryV1)
-	if errJson != nil {
-		fmt.Println(time.Now(), "打开盲盒解析返回结果异常", err)
-		return nil, err
-	}
-	return lotteryV1, nil
 }
