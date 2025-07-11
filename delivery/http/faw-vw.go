@@ -185,6 +185,8 @@ func (fawvw *FAW_VW) Running() {
 		fmt.Println(time.Now(), errMSG)
 		Push(FAWVWGroupName, TitleError, errMSG)
 	}
+	// 4.1 当日新增积分入库
+	fawvw.psql.InsertPointRecord(*dailyIncrease)
 
 	manufacturerScore, err := fawvw.getManufacturerScore(authorization)
 	if err != nil {
@@ -195,9 +197,9 @@ func (fawvw *FAW_VW) Running() {
 
 	var successMsg string
 	if checkinV1.Lottery {
-		successMsg = fmt.Sprintf("成功！连续签到：%d天，新增：%d，总可用：%s；已开盲盒", checkinV1.ContinueCheckInDays, *dailyIncrease, manufacturerScore.Availablescore)
+		successMsg = fmt.Sprintf("成功！连续签到：%d天；积分新增：%d，总可用：%s；已开盲盒", checkinV1.ContinueCheckInDays, *dailyIncrease, manufacturerScore.Availablescore)
 	} else {
-		successMsg = fmt.Sprintf("成功！连续签到：%d天，新增：%d，总可用：%s", checkinV1.ContinueCheckInDays, *dailyIncrease, manufacturerScore.Availablescore)
+		successMsg = fmt.Sprintf("成功！连续签到：%d天；积分新增：%d，总可用：%s", checkinV1.ContinueCheckInDays, *dailyIncrease, manufacturerScore.Availablescore)
 	}
 
 	Push(FAWVWGroupName, TitleSignin, successMsg)
