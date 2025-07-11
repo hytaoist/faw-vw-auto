@@ -15,3 +15,11 @@ func (u *usecase) Versions(product string) ([]string, error) {
 	}
 	return versions, nil
 }
+
+func (u *usecase) SumScore() (int16, error) {
+	sum, err := u.db.SumScore()
+	if err != nil {
+		return 0, err
+	}
+	return sum, nil
+}

@@ -1,13 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Performance Monitor</title>
-        <!-- <link rel="icon" type="image/x-icon" href="/static/favicon.ico"> -->
-    </head>
-    <body>
-        <p>Under construction.</p>
-        <p>Use cURL to communicate with the backend.</p>
-    </body>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Monitor</title>
+    <!-- <link rel="icon" type="image/x-icon" href="/static/favicon.ico"> -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            margin: 0 auto;
+            /* 容器本身水平居中 */
+            text-align: center;
+            /* 内容水平居中 */
+        }
+
+        .container {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            margin: 0 auto;
+            /* 容器本身水平居中 */
+            text-align: center;
+            /* 内容水平居中 */
+        }
+
+        h1 {
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div style="white-space: pre; font-family: monospace;">
+╔══╦══╦╦═╦╗░░╔╗░╔╦╦═╦╗░░╔══╦╦╦══╦═╗
+║═╦╣╔╗║║║║╠══╣╚╦╝║║║║╠══╣╔╗║║╠╗╔╣║║
+║╔╝║╠╣║║║║╠══╩╗║╔╣║║║╠══╣╠╣║║║║║║║║
+╚╝░╚╝╚╩═╩═╝░░░╚═╝╚═╩═╝░░╚╝╚╩═╝╚╝╚═╝
+        </div>
+        <p>自应用于{{.StartTime }}启动以来，已自动获取：<strong><span id="sumValue">{{.SumScore}}</span></strong>积分！</p>
+    </div>
+
+    <script>
+        // 初始加载后获取最新总和
+        fetch('/sum')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('sumValue').textContent = data.Scores;
+            });
+    </script>
+</body>
+
 </html>

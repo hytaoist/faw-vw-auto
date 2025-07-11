@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"net/http"
 	"path/filepath"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
@@ -23,7 +24,19 @@ func newHTML(assets embed.FS) *html {
 }
 
 func (html *html) Index(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	err := html.tmpl.ExecuteTemplate(w, "index.html", nil)
+	// 记录启动时间
+	startTime := time.Now()
+
+	// 准备模板数据
+	data := struct {
+		StartTime string
+		SumScore  int16
+	}{
+		StartTime: startTime.Format("2006-01-02 15:04:05"),
+		SumScore:  0,
+	}
+
+	err := html.tmpl.ExecuteTemplate(w, "index.html", data)
 	if err != nil {
 		err = errors.WithStack(err)
 		log.Error(err)

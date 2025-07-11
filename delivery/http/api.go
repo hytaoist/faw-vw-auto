@@ -78,3 +78,46 @@ func (a *api) versions() httprouter.Handle {
 		}
 	}
 }
+
+/*
+*
+获取应用启动以来记录总和
+*
+*/
+func (a *api) sumScore() httprouter.Handle {
+	type response struct {
+		Scores int16
+	}
+	process := func() (int16, error) {
+		data, err := a.use.SumScore()
+		if err != nil {
+			return 0, err
+		}
+		return data, nil
+	}
+	output := func(w http.ResponseWriter, data int16) error {
+		resp := &response{}
+		resp.Scores = data
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		err := json.NewEncoder(w).Encode(resp)
+		if err != nil {
+			err = errors.WithStack(err)
+			return err
+		}
+		return nil
+	}
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		data, err := process()
+		if err != nil {
+			log.Error(err)
+			http.Error(w, "Internal Server Error", 500)
+			return
+		}
+		err = output(w, data)
+		if err != nil {
+			log.Error(err)
+			http.Error(w, "Internal Server Error", 500)
+			return
+		}
+	}
+}
