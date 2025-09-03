@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -106,7 +107,7 @@ func (favw *FAW_VW) getCheckInInfo(authorization string) (*OneAppResp, error) {
 	// 请求未授权
 	if resp.StatusCode == http.StatusUnauthorized {
 		fmt.Println(time.Now(), "请求未授权")
-		return nil, errors.New(string(resp.StatusCode))
+		return nil, errors.New(strconv.Itoa(resp.StatusCode))
 	}
 
 	body, err := io.ReadAll(resp.Body)

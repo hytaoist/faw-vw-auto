@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -48,7 +49,7 @@ func (fawvw *FAW_VW) getManufacturerScore(authorization string) (*ManufacturerSc
 	// 请求未授权
 	if resp.StatusCode == http.StatusUnauthorized {
 		fmt.Println(time.Now(), "请求未授权")
-		return nil, errors.New(string(resp.StatusCode))
+		return nil, errors.New(strconv.Itoa(resp.StatusCode))
 	}
 
 	body, err := io.ReadAll(resp.Body)
@@ -108,7 +109,7 @@ func (fawvw *FAW_VW) getDayIncrease(authorization string) (*int, error) {
 	// 请求未授权
 	if resp.StatusCode == http.StatusUnauthorized {
 		fmt.Println(time.Now(), "请求未授权")
-		return nil, errors.New(string(resp.StatusCode))
+		return nil, errors.New(strconv.Itoa(resp.StatusCode))
 	}
 
 	body, err := io.ReadAll(resp.Body)
