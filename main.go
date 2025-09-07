@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"fmt"
+	"os"
 
 	"github.com/hytaoist/faw-vw-auto/config"
 	"github.com/hytaoist/faw-vw-auto/delivery/http"
@@ -37,8 +38,16 @@ func main() {
 	faw := http.NewFAW(db)
 	faw.LoadWebAPIConfig(cfg)
 	faw.LoadAppConfig(cfg)
+
+	// If running as a scheduler/task or want a single-run invocation, set FAW_RUN_ONCE=1
+	// In that mode, execute the job once and exit to avoid conflicts with external schedulers.
+	if os.Getenv("FAW_RUN_ONCE") == "1" {
+		faw.Running()
+		return
+	}
+
+	// Default behavior: start internal cron background runner and the HTTP server.
 	faw.BackgroundRunning()
-	// faw.Running()
 
 	// Service
 	use := domain.NewUsecase(db)
