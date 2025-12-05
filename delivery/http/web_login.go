@@ -3,6 +3,7 @@ package http
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -60,7 +61,6 @@ func (fawvw *FAW_VW) LoadWebAPIConfig(cfg *Config) {
 func (favw *FAW_VW) checkToken(token string) (bool, error) {
 	targetURL := "https://vw.faw-vw.com/api/business/cpoint/checkToken"
 
-	// 创建请求
 	req, err := http.NewRequest("POST", targetURL, nil)
 	if err != nil {
 		fmt.Println(time.Now(), "创建请求异常", err)
@@ -81,7 +81,6 @@ func (favw *FAW_VW) checkToken(token string) (bool, error) {
 	}
 	defer resp.Body.Close()
 
-	// 2.解析结果
 	body, err := io.ReadAll(resp.Body)
 	var r bool
 	webAppResp := &WebAppResp{Data: &r}
@@ -135,6 +134,12 @@ func (favw *FAW_VW) registeOrLogin() (string, error) {
 	var registerOrLoginResp RegisterOrLoginResp
 	webAppResp := &WebAppResp{Data: &registerOrLoginResp}
 	errJson := json.Unmarshal(body, &webAppResp)
+	// 2.1 具有图形验证码，不能校验通过时，需要给用户发送需要更新“password”参数通知
+	if webAppResp.Code == 500 && webAppResp.Msg == "验证失败" {
+		fmt.Println(time.Now(), "登录验证失败", err)
+		return "", errors.New(webAppResp.Msg)
+	}
+
 	if errJson != nil {
 		return "", err
 	}

@@ -124,7 +124,11 @@ func (fawvw *FAW_VW) Running() {
 		authorization = auth.TokenType + auth.AccessToken
 	}
 
-	authorization = fawvw.getValidToken(authorization)
+	authorization, err := fawvw.getValidToken(authorization)
+	if authorization == "" && err.Error() == "验证失败" {
+		Push(ErrorGroupName, "登录验证失败", "需前往一汽大众Web版应用登录一下看登录接口的「password」，并更新程序env.yaml里的「password」参数，再重启应用。")
+		return
+	}
 
 	// 1.查签到信息
 	oneappResp, err := fawvw.getCheckInInfo(authorization)
@@ -206,17 +210,25 @@ func (fawvw *FAW_VW) Running() {
 }
 
 // 获取有效的Token
-// 1.查询签到信息接口能正常返回，Token有效
+// 1.查询签到信息接口能正常返回，Token有效。Token失效了通过“checkToken”这个接口依旧返回正常，因此校验Token有效的方式采用“getCheckInInfo”这个方法来校验。
 // 2.查询签到信息接口异常返回（未授权等），调用登录接口获取最新Token并入库
-func (fawvw *FAW_VW) getValidToken(authorization string) string {
+func (fawvw *FAW_VW) getValidToken(authorization string) (string, error) {
 	if authorization != "" {
 		// 1.检验当前这个token是否有效
-		r, err := fawvw.checkToken(authorization)
-		if err != nil {
-			fmt.Println(time.Now(), "校验Token接口异常", err)
-		}
-		if r {
-			return authorization
+		// r, err := fawvw.checkToken(authorization)
+		// if err != nil {
+		// 	fmt.Println(time.Now(), "校验Token接口异常", err)
+		// }
+		// if r {
+		// 	return authorization
+		// }
+
+		oneappResp, err := fawvw.getCheckInInfo(authorization)
+		// 请求未授权，由getCheckInfo抛出
+		if oneappResp == nil && err != nil && err.Error() == string(http.StatusUnauthorized) {
+			fmt.Println(time.Now(), "通过查询签到信息接口检验Token是否有效，请求未授权！", err)
+		} else {
+			return authorization, nil
 		}
 	}
 
@@ -226,8 +238,8 @@ func (fawvw *FAW_VW) getValidToken(authorization string) string {
 	if err != nil {
 		fmt.Println(time.Now(), "执行登陆获取授权异常", err)
 		Push(FAWVWGroupName, TitleError, err.Error())
-		return ""
+		return "", err
 	}
 
-	return newAuthorization
+	return newAuthorization, err
 }
