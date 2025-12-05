@@ -27,6 +27,11 @@
 | `securityCode`       | 客户端签到接口必填参数（抓包App登录接口 `https://oneapp-api.faw-vw.com/account/login/loginByPassword/v1` 获取） | ✅ 必填   | 7a8b9c0d1e2f... |
 | `did`                | 客户端设备ID（抓包同上接口获取）                                                        | ✅ 必填   | VW_APP_iPhone_XXXXXXXXXXXXXXXXXXXX_15.1_4.0.18 | 
 
+### 特别说明
+目前一汽大众Web版的登录接口里的password参数具有实效性，这个实效有多久，目前未知。因此可能会出现一段时间后无法登录的情况，需要定期重新获取该参数并更新至配置文件中才能继续使用签到功能。获取这个参数的方法请参考上表说明或参考图示。
+<div>
+    <img src="./appassets/IMG_PASSWORD.png" width="40%" alt="预览1">
+</div>
 
 ---
 
