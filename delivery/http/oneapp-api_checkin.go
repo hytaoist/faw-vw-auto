@@ -18,8 +18,6 @@ func (fawvw *FAW_VW) checkinV1(authorization string) (*OneAppResp, error) {
 	//1.
 	// 定义目标 URL
 	targetURL := "https://oneapp-api.faw-vw.com/profile/checkin/v1"
-
-	// 定义请求体数据
 	bodyData, err := json.Marshal(securityCodeBody)
 	if err != nil {
 		fmt.Println(time.Now(), "登录请求签到解析异常请排查", err)
@@ -41,8 +39,6 @@ func (fawvw *FAW_VW) checkinV1(authorization string) (*OneAppResp, error) {
 	}
 	// 设置授权
 	req.Header.Set("authorization", authorization)
-	// 添加参数到 URL
-	// req.URL.RawQuery = params.Encode()
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -51,6 +47,7 @@ func (fawvw *FAW_VW) checkinV1(authorization string) (*OneAppResp, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
+
 	// 2.解析结果
 	body, err := io.ReadAll(resp.Body)
 
@@ -61,6 +58,13 @@ func (fawvw *FAW_VW) checkinV1(authorization string) (*OneAppResp, error) {
 		fmt.Println(time.Now(), "成功，解析返回结果异常", err)
 		return nil, err
 	}
+
+	// 当参数过期时，
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println(time.Now(), "签到请求异常", resp)
+		return nil, errors.New(checkinV1.ErrorCode)
+	}
+
 	fmt.Println(time.Now(), "一汽大众签到成功！")
 	return checkinV1, nil
 }

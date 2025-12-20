@@ -152,8 +152,9 @@ func (fawvw *FAW_VW) Running() {
 
 	// 2.执行签到
 	checkinV1Resp, err := fawvw.checkinV1(authorization)
-	if err != nil {
-		Push(FAWVWGroupName, TitleSignin, err.Error())
+	/// securityCode参数过期
+	if err != nil && err.Error() == "SECURITY.COMMON.0003" {
+		Push(FAWVWGroupName, TitleSignin, "securityCode参数过期，请更新env.yaml里的「securityCode」")
 		return
 	}
 	checkinV1, ok := checkinV1Resp.Data.(*CheckInDataResp)
